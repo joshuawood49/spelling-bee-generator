@@ -1,48 +1,68 @@
 import streamlit as st
 import random
 
+# Word data structure: word, pronunciation, definition, example
 level_words = {
     "Level 1": [
-        "above", "block", "breeze", "brick", "carpet", "cloud", "drink", "field", "groom", "heat", "jumper",
-        "oval", "pilot", "plenty", "radio", "silent", "silver", "skill", "stone", "thunder", "verb", "waste",
-        "band", "book", "chapter", "drum", "event", "mime", "poem", "scale", "tale", "vote", "beach", "forest",
-        "moon", "river", "world", "bark", "nest", "seal", "wombat"
+        {
+            "word": "above",
+            "pronunciation": "uh-buv",
+            "definition": "adverb: in a higher place.",
+            "example": "Look above — there's a possum in the tree!"
+        },
+        {
+            "word": "block",
+            "pronunciation": "blok",
+            "definition": "noun: a solid piece of hard material.",
+            "example": "He built a tower out of wooden blocks."
+        },
+        # ⬅️ Add more Level 1 words here following this structure
     ],
     "Level 2": [
-        "android", "backspin", "billion", "bushfire", "canoe", "cockroach", "cruise", "curtain", "damsel", "edam",
-        "fumble", "fountain", "fringe", "gritty", "guest", "pirate", "solar", "stetson", "swagger", "trudge",
-        "vanity", "venom", "village", "wharf", "wonderful", "tutu", "police", "weather", "blossom", "python",
-        "wolf", "graph", "router", "wireless"
+        {
+            "word": "android",
+            "pronunciation": "an-droid",
+            "definition": "noun: a robot with a human appearance.",
+            "example": "The android helped clean the space station."
+        },
+        # ⬅️ More Level 2 words...
     ],
-    "Level 3": [
-        "abandon", "accident", "admire", "agenda", "almond", "bargain", "benefit", "brilliant", "coconut", "concede",
-        "concoct", "corridor", "crystal", "gorgeous", "hospital", "hypnosis", "inquest", "kitchen", "ledger",
-        "malfunction", "marmalade", "minority", "nostalgia", "obsession", "oracle", "original", "pamphlet",
-        "paramedic", "pesticide", "prescription", "progression", "surgeon", "quadrangle", "quartet"
-    ],
-    "Level 4": [
-        "adhesive", "aggrieved", "alligator", "anxiety", "bouquet", "burrito", "celebrity", "coerce", "convertible",
-        "culminate", "delectable", "effusive", "equivalent", "exhaustive", "gruelling", "humorous", "luxury",
-        "miniature", "niche", "opportunity", "paperweight", "participate", "phenomenon", "precursor", "procession",
-        "professor", "repetition", "salubrious", "scythe", "secondment", "seniority", "simplicity", "solace",
-        "stalwart", "strategist", "transportation", "university", "utopia", "vacancy", "vegetarian", "vicious",
-        "volunteer"
-    ],
-    "Level 5": [
-        "aeronautics", "algebra", "augment", "binoculars", "capacious", "chalet", "chiropractor", "colloquial",
-        "duplicity", "euphoric", "facade", "hallucinate", "jewellery", "knowledgeable", "monotonous", "pacifist",
-        "prosciutto", "psychic", "reminisce", "resuscitate", "succession", "supremacy", "tortellini", "whimsical",
-        "wreckage", "elocution", "palindrome", "portraiture", "aristocracy", "coalition", "recession",
-        "Afghanistan", "Gallipoli", "Vanuatu", "crustacean", "perennial", "proboscis", "sycamore", "Galileo",
-        "percentile", "statistician", "symmetry", "trapezium"
-    ]
+    "Level 3": [],
+    "Level 4": [],
+    "Level 5": []
 }
 
 st.set_page_config(page_title="Spelling Bee Generator", layout="centered")
 st.title("🐝 Spelling Bee Word Generator")
-st.markdown("Pick a level and click to generate a random spelling bee word.")
+st.markdown("Pick a level to generate a random word. Each word includes pronunciation, definition, and a sentence. Words won’t repeat until you reset.")
 
 selected_level = st.selectbox("Choose a spelling level:", list(level_words.keys()))
 
-if st.button("🎲 Generate Word"):
-    st.success(f"**{selected_level} Word:** {random.choice(level_words[selected_level])}")
+# Set up session state
+if "used_words" not in st.session_state:
+    st.session_state.used_words = {}
+if selected_level not in st.session_state.used_words:
+    st.session_state.used_words[selected_level] = []
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("🎲 Generate Word"):
+        unused_words = [
+            word for word in level_words[selected_level]
+            if word["word"] not in [w["word"] for w in st.session_state.used_words[selected_level]]
+        ]
+        if unused_words:
+            new_word = random.choice(unused_words)
+            st.session_state.used_words[selected_level].append(new_word)
+            st.markdown(f"### 📝 {new_word['word']}")
+            st.markdown(f"**Pronunciation:** {new_word['pronunciation']}")
+            st.markdown(f"**Definition:** {new_word['definition']}")
+            st.markdown(f"**Example:** {new_word['example']}")
+        else:
+            st.warning("✅ All words shown for this level. Please reset to start again.")
+
+with col2:
+    if st.button("🔁 Reset Words"):
+        st.session_state.used_words[selected_level] = []
+        st.info(f"{selected_level} word list has been reset.")
